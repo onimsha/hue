@@ -437,6 +437,7 @@ class HiveServerClient:
   def get_databases(self):
     # GetCatalogs() is not implemented in HS2
     req = TGetSchemasReq()
+    req.schemaName = self.user.username if self.user.username.lower() != 'admin' else None
     res = self.call(self._client.GetSchemas, req)
 
     results, schema = self.fetch_result(res.operationHandle)
