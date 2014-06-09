@@ -222,9 +222,14 @@ function sparkViewModel() {
         type: 'POST',
         success: function(data) {
           if (data.status == 0) {
-            $(document).trigger('saved.query', data);
+            if (self.query.id() == -1) {
+              self.query.id(data.design_id);
+              $(document).trigger('savedas.query', data);
+            } else {
+              $(document).trigger('saved.query', data);
+            }
           } else {
-        	self.query.errors.push(data.message);
+            self.query.errors.push(data.message);
           }
         },
         error: function() {
@@ -243,6 +248,7 @@ function sparkViewModel() {
     data.autoContext = self.autoContext();
     data.context = self.context() ? self.context().name : '';
     data.params = ko.toJSON(self.query.params());
+    self.resultsEmpty(false);
     var request = {
       url: '/spark/api/execute',
       dataType: 'json',
@@ -268,7 +274,7 @@ function sparkViewModel() {
   };
 
   self.checkQueryStatus = function() {
-  var timerId = 0;
+    var timerId = 0;
 
     var request = {
       url: '/spark/api/job/' + self.query.jobId(),
@@ -278,8 +284,12 @@ function sparkViewModel() {
         // Script finished
         if (data.results.status == 'OK' || data.results.status == 'ERROR') {
           clearInterval(timerId);
-          self.updateResults(data.results.result);
-          self.resultsEmpty($.isEmptyObject(data.results.result));
+          if (data.results.status == 'OK') {
+            self.updateResults(data.results.result);
+            self.resultsEmpty($.isEmptyObject(data.results.result));
+          } else {
+            self.query.errors.push(data.results.ERROR.message);
+          }
           $(document).trigger('executed.query', data);
         }
       },
