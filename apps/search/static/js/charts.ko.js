@@ -286,7 +286,7 @@ function barChart(element, options, isTimeline) {
     var insertLinebreaks = function (d) {
       var _el = d3.select(this);
       var _mom = moment(d);
-      if (_mom != null && _mom.isValid()) {
+      if (_mom != null) {
         var _words = _mom.format("hh:mm:ss YYYY-MM-DD").split(" ");
         _el.text('');
         for (var i = 0; i < _words.length; i++) {

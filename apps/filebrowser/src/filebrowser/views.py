@@ -62,7 +62,9 @@ from filebrowser.lib import xxd
 from filebrowser.forms import RenameForm, UploadFileForm, UploadArchiveForm, MkDirForm, EditorForm, TouchForm,\
                               RenameFormSet, RmTreeFormSet, ChmodFormSet, ChownFormSet, CopyFormSet, RestoreFormSet,\
                               TrashPurgeForm
+import logging
 
+LOG = logging.getLogger(__name__)
 
 DEFAULT_CHUNK_SIZE_BYTES = 1024 * 4 # 4KB
 MAX_CHUNK_SIZE_BYTES = 1024 * 1024 # 1MB
@@ -137,10 +139,13 @@ def download(request, path):
     response['Content-Disposition'] = request.GET.get('disposition', 'attachment')
     return response
 
+def tclq_check_path(source, destination):
+    path_verify = re.match(source, destination)
+    return path_verify
 
 def view(request, path):
     """Dispatches viewing of a path to either index() or fileview(), depending on type."""
-
+   
     # default_to_home is set in bootstrap.js
     if 'default_to_home' in request.GET:
         home_dir_path = request.user.get_home_directory()
@@ -157,6 +162,12 @@ def view(request, path):
 
     try:
         stats = request.fs.stats(path)
+        path_verify = tclq_check_path(request.user.get_home_directory(), stats.path)
+        if path_verify:
+            pass
+        else:
+            raise IOError('Permission Deny')
+        
         if stats.isDir:
             return listdir_paged(request, path)
         else:
@@ -501,7 +512,7 @@ def display(request, path):
     as more advanced binary-file viewing capability (de-serialize
     sequence files, decompress gzipped text files, etc.).
     There exists a python-magic package to interface with libmagic.
-    """
+    """    
     if not request.fs.isfile(path):
         raise PopupException(_("Not a file: '%(path)s'") % {'path': path})
 
