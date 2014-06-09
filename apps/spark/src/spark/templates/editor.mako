@@ -181,7 +181,7 @@ ${ common.navbar('editor') }
             </div>
           </div>
 
-          <div data-bind="css: {'hide': !resultsEmpty()}" class="hide">
+          <div data-bind="visible: resultsEmpty()">
             <div class="scrollable">
               <div class="row-fluid">
                 <div class="span10 offset1 center empty-wrapper">
@@ -500,6 +500,10 @@ ${ common.createContextModal() }
     $.jHueNotify.info("${_('Application saved successfully!')}")
   });
 
+  $(document).on('savedas.query', function() {
+    window.location.href = "${ url('spark:editor') }" + viewModel.query.id();
+  });
+
   var dataTable = null;
 
   function cleanResultsTable() {
@@ -561,6 +565,7 @@ ${ common.createContextModal() }
     $("#executeQuery").button("loading");
     cleanResultsTable();
   });
+
   $(document).on('executed.query', function() {
     $('#wait-info').hide();
     $("#executeQuery").button("reset");
@@ -579,6 +584,7 @@ ${ common.createContextModal() }
   $(document).on('server.error', function(e, data) {
     $(document).trigger('error', "${_('Server error occured: ')}" + data.error);
   });
+
   $(document).on('server.unmanageable_error', function(e, responseText) {
     $(document).trigger('error', "${_('Unmanageable server error occured: ')}" + responseText);
   });

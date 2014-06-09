@@ -314,7 +314,7 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
         <div class="slider-cnt" data-bind="slider: {start: properties.start, end: properties.end, gap: properties.gap, min: properties.min, max: properties.max}"></div>
       <!-- /ko -->
       <!-- ko if: properties.isDate() -->
-        <div data-bind="simpledaterangepicker: {start: properties.start, end: properties.end, gap: properties.gap, min: properties.min, max: properties.max}"></div>
+        <div data-bind="daterangepicker: {start: properties.start, end: properties.end, gap: properties.gap, min: properties.min, max: properties.max}"></div>
         <br/>
       <!-- /ko -->
     <!-- /ko -->
@@ -451,85 +451,88 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
     </div>
 
     <div>
-      <div data-bind="visible: !$root.isRetrievingResults() && $root.results().length == 0">
-        ${ _('Your search did not match any documents.') }
-      </div>
-
-      <!-- ko if: $root.response().response -->
-        <div data-bind="template: {name: 'resultset-pagination', data: $root.response() }" style="padding: 8px; color: #666"></div>
-      <!-- /ko -->
-
       <div class="widget-spinner" data-bind="visible: $root.isRetrievingResults()">
         <!--[if !IE]> --><i class="fa fa-spinner fa-spin"></i><!-- <![endif]-->
         <!--[if IE]><img src="/static/art/spinner.gif" /><![endif]-->
       </div>
 
-      <div id="result-main" style="overflow-x: auto">
-        <table id="result-container" data-bind="visible: !$root.isRetrievingResults()" style="margin-top: 0; width: 100%">
-          <thead>
-            <tr data-bind="visible: $root.collection.template.fieldsSelected().length > 0">
-              <th style="width: 18px">&nbsp;</th>
-              <!-- ko foreach: $root.collection.template.fieldsSelected -->
-              <th data-bind="with: $root.collection.getTemplateField($data), event: { mouseover: $root.enableGridlayoutResultChevron, mouseout: $root.disableGridlayoutResultChevron }" style="white-space: nowrap">
-                <div style="display: inline-block; width:20px;">
-                <a href="javascript: void(0)" data-bind="click: function(){ $root.collection.translateSelectedField($index(), 'left'); }">
-                    <i class="fa fa-chevron-left" data-bind="visible: $root.toggledGridlayoutResultChevron() && $index() > 0"></i>
-                    <i class="fa fa-chevron-left" style="color: #FFF" data-bind="visible: !$root.toggledGridlayoutResultChevron() || $index() == 0"></i>
-                </a>
-                </div>
-                <div style="display: inline-block;">
-                <a href="javascript: void(0)" data-bind="click: $root.collection.toggleSortColumnGridLayout" title="${ _('Click to sort') }">
-                  <span data-bind="text: name"></span>
-                  <i class="fa" data-bind="visible: sort.direction() != null, css: { 'fa-chevron-down': sort.direction() == 'desc', 'fa-chevron-up': sort.direction() == 'asc' }"></i>
-                </a>
+      <div data-bind="visible: !$root.isRetrievingResults() && $root.results().length == 0">
+        </br>
+        ${ _('Your search did not match any documents.') }
+      </div>
+
+      <div data-bind="visible: !$root.isRetrievingResults() && $root.results().length > 0">
+        <!-- ko if: $root.response().response -->
+          <div data-bind="template: {name: 'resultset-pagination', data: $root.response() }" style="padding: 8px; color: #666"></div>
+        <!-- /ko -->
+
+        <div id="result-main" style="overflow-x: auto">
+          <table id="result-container" data-bind="visible: ! $root.isRetrievingResults()" style="margin-top: 0; width: 100%">
+            <thead>
+              <tr data-bind="visible: $root.collection.template.fieldsSelected().length > 0">
+                <th style="width: 18px">&nbsp;</th>
+                <!-- ko foreach: $root.collection.template.fieldsSelected -->
+                <th data-bind="with: $root.collection.getTemplateField($data), event: { mouseover: $root.enableGridlayoutResultChevron, mouseout: $root.disableGridlayoutResultChevron }" style="white-space: nowrap">
+                  <div style="display: inline-block; width:20px;">
+                    <a href="javascript: void(0)" data-bind="click: function(){ $root.collection.translateSelectedField($index(), 'left'); }">
+                      <i class="fa fa-chevron-left" data-bind="visible: $root.toggledGridlayoutResultChevron() && $index() > 0"></i>
+                      <i class="fa fa-chevron-left" style="color: #FFF" data-bind="visible: !$root.toggledGridlayoutResultChevron() || $index() == 0"></i>
+                    </a>
                   </div>
-                <div style="display: inline-block; width:20px;">
-                <a href="javascript: void(0)" data-bind="click: function(){ $root.collection.translateSelectedField($index(), 'right'); }">
-                    <i class="fa fa-chevron-right" data-bind="visible: $root.toggledGridlayoutResultChevron() && $index() < $root.collection.template.fields().length - 1"></i>
-                  <i class="fa fa-chevron-up" style="color: #FFF" data-bind="visible: !$root.toggledGridlayoutResultChevron() || $index() == $root.collection.template.fields().length - 1,"></i>
-                </a>
-                </div>
-              </th>
-              <!-- /ko -->
-            </tr>
-            <tr data-bind="visible: $root.collection.template.fieldsSelected().length == 0">
-              <th style="width: 18px">&nbsp;</th>
-              <th>${ ('Document') }</th>
-            </tr>
-          </thead>
-          <tbody data-bind="foreach: { data: $root.results, as: 'documents'}" class="result-tbody">
-            <tr class="result-row">
-              <td>
-                <a href="javascript:void(0)" data-bind="click: toggleDocDetails">
-                  <i class="fa" data-bind="css: {'fa-caret-right' : ! showDetails(), 'fa-caret-down' : showDetails() }"></i>
-                </a>
-              </td>
-              <!-- ko foreach: row -->
-                <td data-bind="html: $data"></td>
-              <!-- /ko -->
-            </tr>
-            <tr data-bind="visible: showDetails">
-              <td data-bind="attr: {'colspan': $root.collection.template.fieldsSelected().length > 0 ? $root.collection.template.fieldsSelected().length + 1 : 2}">
-                <!-- ko if: $data.details().length == 0 -->
-                 <!--[if !IE]> --><i class="fa fa-spinner fa-spin"></i><!-- <![endif]-->
-                 <!--[if IE]><img src="/static/art/spinner.gif" /><![endif]-->
+                  <div style="display: inline-block;">
+                    <a href="javascript: void(0)" data-bind="click: $root.collection.toggleSortColumnGridLayout" title="${ _('Click to sort') }">
+                      <span data-bind="text: name"></span>
+                      <i class="fa" data-bind="visible: sort.direction() != null, css: { 'fa-chevron-down': sort.direction() == 'desc', 'fa-chevron-up': sort.direction() == 'asc' }"></i>
+                    </a>
+                  </div>
+                  <div style="display: inline-block; width:20px;">
+                    <a href="javascript: void(0)" data-bind="click: function(){ $root.collection.translateSelectedField($index(), 'right'); }">
+                      <i class="fa fa-chevron-right" data-bind="visible: $root.toggledGridlayoutResultChevron() && $index() < $root.collection.template.fields().length - 1"></i>
+                      <i class="fa fa-chevron-up" style="color: #FFF" data-bind="visible: !$root.toggledGridlayoutResultChevron() || $index() == $root.collection.template.fields().length - 1,"></i>
+                    </a>
+                  </div>
+                </th>
                 <!-- /ko -->
-                <!-- ko if: $data.details().length > 0 -->
-          <div class="document-details">
-            <table>
-              <tbody data-bind="foreach: details">
-                <tr>
-                  <th style="text-align: left; white-space: nobreak; vertical-align:top; padding-right:20px", data-bind="text: key"></th>
-                  <td width="100%" data-bind="text: value"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+              </tr>
+              <tr data-bind="visible: $root.collection.template.fieldsSelected().length == 0">
+                <th style="width: 18px">&nbsp;</th>
+                <th>${ ('Document') }</th>
+              </tr>
+            </thead>
+            <tbody data-bind="foreach: { data: $root.results, as: 'documents'}" class="result-tbody">
+              <tr class="result-row">
+                <td>
+                  <a href="javascript:void(0)" data-bind="click: toggleDocDetails">
+                    <i class="fa" data-bind="css: {'fa-caret-right' : ! showDetails(), 'fa-caret-down' : showDetails() }"></i>
+                  </a>
+                </td>
+                <!-- ko foreach: row -->
+                  <td data-bind="html: $data"></td>
                 <!-- /ko -->
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </tr>
+              <tr data-bind="visible: showDetails">
+                <td data-bind="attr: {'colspan': $root.collection.template.fieldsSelected().length > 0 ? $root.collection.template.fieldsSelected().length + 1 : 2}">
+                  <!-- ko if: $data.details().length == 0 -->
+                    <!--[if !IE]> --><i class="fa fa-spinner fa-spin"></i><!-- <![endif]-->
+                    <!--[if IE]><img src="/static/art/spinner.gif" /><![endif]-->
+                  <!-- /ko -->
+                  <!-- ko if: $data.details().length > 0 -->
+                    <div class="document-details">
+                      <table>
+                        <tbody data-bind="foreach: details">
+                          <tr>
+                             <th style="text-align: left; white-space: nobreak; vertical-align:top; padding-right:20px", data-bind="text: key"></th>
+                             <td width="100%" data-bind="text: value"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  <!-- /ko -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   <!-- /ko -->
@@ -630,10 +633,11 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
 
     <div id="result-main" style="overflow-x: auto">
       <div data-bind="visible: !$root.isRetrievingResults() && $root.results().length == 0">
+        </br>
         ${ _('Your search did not match any documents.') }
       </div>
 
-      <!-- ko if: $root.response().response -->
+      <!-- ko if: $root.response().response && $root.results().length > 0 -->
         <div data-bind="template: {name: 'resultset-pagination', data: $root.response() }"></div>
       <!-- /ko -->
 
@@ -656,7 +660,8 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
     <i class="fa fa-arrow-left" data-bind="
         visible: $data.response.start * 1.0 >= $root.collection.template.rows() * 1.0,
         click: function() { $root.query.paginate('prev') }">
-    </i></a>
+    </i>
+  </a>
 
   ${ _('Showing') }
   <span data-bind="text: ($data.response.start + 1)"></span>
@@ -709,8 +714,9 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
       </span>
     </div>
 
-    <div style="padding-bottom: 10px; text-align: left">
-      <a href="javascript:void(0)" data-bind="click: $root.collection.timeLineZoom"><i class="fa fa-search-minus"></i></a>
+    <div style="padding-bottom: 10px; text-align: right; padding-right: 20px">
+      <span class="facet-field-label">${ _('Zoom') }</span>
+      <a href="javascript:void(0)" data-bind="click: $root.collection.timeLineZoom"><i class="fa fa-search-minus"></i> ${ _('reset') }</a> &nbsp;|&nbsp;
       <span class="facet-field-label">${ _('Group by') }</span>
       <select class="input-medium" data-bind="options: $root.query.multiqs, optionsValue: 'id',optionsText: 'label', value: $root.query.selectedMultiq"></select>
     </div>
@@ -950,7 +956,6 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
 <link rel="stylesheet" href="/static/ext/css/bootstrap-timepicker.min.css">
 <link rel="stylesheet" href="/static/css/bootstrap-spinedit.css">
 <link rel="stylesheet" href="/static/css/bootstrap-slider.css">
-<link rel="stylesheet" href="/static/css/bootstrap-daterangepicker.css">
 <link rel="stylesheet" href="/static/ext/css/nv.d3.min.css">
 <link rel="stylesheet" href="/search/static/css/nv.d3.css">
 <link rel="stylesheet" href="/static/ext/chosen/chosen.min.css">
@@ -967,7 +972,6 @@ ${ commonheader(_('Search'), "search", user, "80px") | n,unicode }
 <script src="/static/ext/js/bootstrap-timepicker.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/bootstrap-spinedit.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/bootstrap-slider.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/bootstrap-daterangepicker.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/ko.editable.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/ext/js/shortcut.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/freshereditor.js" type="text/javascript" charset="utf-8"></script>
@@ -1377,10 +1381,10 @@ $(document).ready(function () {
         tooltip: 'always'
       });
       _el.on("slide", function (e) {
-        _options.start(e.start);
-        _options.end(e.end);
-        _options.min(e.min);
-        _options.max(e.max);
+        _options.start(e.min);
+        _options.end(e.max);
+        _options.min(e.start);
+        _options.max(e.end);
         _options.gap(e.step);
       });
     },
@@ -1389,7 +1393,7 @@ $(document).ready(function () {
     }
   }
 
-  ko.bindingHandlers.simpledaterangepicker = {
+  ko.bindingHandlers.daterangepicker = {
     init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
       var DATE_FORMAT = "YYYY-MM-DD";
       var TIME_FORMAT = "HH:mm:ss";
@@ -1436,7 +1440,7 @@ $(document).ready(function () {
       }
 
       var _tmpl = $('<div class="simpledaterangepicker">' +
-                    '<div class="facet-field-cnt">' +
+                    '<div class="facet-field-cnt picker">' +
                       '<div class="facet-field-label facet-field-label-fixed-width">${ _('Start') }</div>' +
                       '<div class="input-prepend input-group">' +
                         '<span class="add-on input-group-addon"><i class="fa fa-calendar"></i></span>' +
@@ -1447,7 +1451,7 @@ $(document).ready(function () {
                         '<input type="text" class="input-mini form-control start-time" />' +
                       '</div>' +
                     '</div>' +
-                    '<div class="facet-field-cnt">' +
+                    '<div class="facet-field-cnt picker">' +
                       '<div class="facet-field-label facet-field-label-fixed-width">${ _('End') }</div>' +
                       '<div class="input-prepend input-group">' +
                         '<span class="add-on input-group-addon"><i class="fa fa-calendar"></i></span>' +
@@ -1458,46 +1462,95 @@ $(document).ready(function () {
                         '<input type="text" class="input-mini form-control end-time" />' +
                       '</div>' +
                     '</div>' +
-                    '<div class="facet-field-cnt">' +
+                    '<div class="facet-field-cnt picker">' +
                       '<div class="facet-field-label facet-field-label-fixed-width">${ _('Interval') }</div>' +
                       '<select class="input-small interval-select" style="margin-right: 6px">' +
                           renderOptions(_intervalOptions) +
                       '</select>' +
                       '<input class="input interval hide" type="text" value="" />' +
                     '</div>' +
+                    '<div class="facet-field-cnt picker">' +
+                      '<div class="facet-field-label facet-field-label-fixed-width"></div>' +
+                      '<div class="facet-field-switch"><a href="javascript:void(0)"><i class="fa fa-calendar-o"></i> ${ _('Custom properties') }</a></div>' +
+                    '</div>' +
+                    '<div class="facet-field-cnt custom">' +
+                      '<div class="facet-field-label facet-field-label-fixed-width">${ _('Start') }</div>' +
+                      '<div class="input-prepend input-group">' +
+                        '<span class="add-on input-group-addon"><i class="fa fa-calendar"></i></span>' +
+                        '<input type="text" class="input-large form-control start-date-custom" />' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="facet-field-cnt custom">' +
+                      '<div class="facet-field-label facet-field-label-fixed-width">${ _('End') }</div>' +
+                      '<div class="input-prepend input-group">' +
+                        '<span class="add-on input-group-addon"><i class="fa fa-calendar"></i></span>' +
+                        '<input type="text" class="input-large form-control end-date-custom" />' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="facet-field-cnt custom">' +
+                      '<div class="facet-field-label facet-field-label-fixed-width">${ _('Interval') }</div>' +
+                      '<div class="input-prepend input-group">' +
+                        '<span class="add-on input-group-addon"><i class="fa fa-repeat"></i></span>' +
+                        '<input type="text" class="input-large form-control interval-custom" />' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="facet-field-cnt custom">' +
+                      '<div class="facet-field-label facet-field-label-fixed-width"></div>' +
+                      '<div class="facet-field-switch"><a href="javascript:void(0)"><i class="fa fa-calendar"></i> ${ _('Show pickers') }</a></div>' +
+                    '</div>' +
+
                   '</div>'
       );
 
       _tmpl.insertAfter(_el);
 
-      _tmpl.find(".start-date").val(moment(_options.min()).format(DATE_FORMAT));
+      var _minMoment = moment(_options.min());
+      var _maxMoment = moment(_options.max());
+      var _startMoment = moment(_options.start());
+      var _endMoment = moment(_options.end());
+
+      if (_minMoment.isValid()) {
+        _tmpl.find(".facet-field-cnt.custom").hide();
+        _tmpl.find(".facet-field-cnt.picker").show();
+        _tmpl.find(".start-date").val(_minMoment.format(DATE_FORMAT));
+        _tmpl.find(".start-time").val(_minMoment.format(TIME_FORMAT));
+        _tmpl.find(".end-date").val(_maxMoment.format(DATE_FORMAT));
+        _tmpl.find(".end-time").val(_maxMoment.format(TIME_FORMAT));
+        _tmpl.find(".interval").val(_options.gap());
+        _tmpl.find(".interval-custom").val(_options.gap());
+      }
+      else {
+        _tmpl.find(".facet-field-cnt.custom").show();
+        _tmpl.find(".facet-field-cnt.picker").hide();
+        _tmpl.find(".start-date-custom").val(_options.min())
+        _tmpl.find(".end-date-custom").val(_options.max())
+        _tmpl.find(".interval-custom").val(_options.gap())
+      }
+
       _tmpl.find(".start-date").datepicker({
         format: DATE_FORMAT.toLowerCase()
       }).on("changeDate", function () {
         rangeHandler(true);
       });
 
-      _tmpl.find(".start-time").val(moment(_options.min()).format(TIME_FORMAT));
       _tmpl.find(".start-time").timepicker({
-          minuteStep: 1,
-          showSeconds: true,
-          showMeridian: false,
-          defaultTime: false
+        minuteStep: 1,
+        showSeconds: true,
+        showMeridian: false,
+        defaultTime: false
       });
 
-      _tmpl.find(".end-date").val(moment(_options.max()).format(DATE_FORMAT));
       _tmpl.find(".end-date").datepicker({
         format: DATE_FORMAT.toLowerCase()
       }).on("changeDate", function () {
         rangeHandler(false);
       });
 
-      _tmpl.find(".end-time").val(moment(_options.max()).format(TIME_FORMAT));
       _tmpl.find(".end-time").timepicker({
-          minuteStep: 1,
-          showSeconds: true,
-          showMeridian: false,
-          defaultTime: false
+        minuteStep: 1,
+        showSeconds: true,
+        showMeridian: false,
+        defaultTime: false
       });
 
       _tmpl.find(".start-time").on("change", function () {
@@ -1514,7 +1567,33 @@ $(document).ready(function () {
         }, 200);
       });
 
-      rangeHandler(true);
+      if (_minMoment.isValid()) {
+        rangeHandler(true);
+      }
+
+      _tmpl.find(".facet-field-cnt.picker .facet-field-switch a").on("click", function(){
+        _tmpl.find(".facet-field-cnt.custom").show();
+        _tmpl.find(".facet-field-cnt.picker").hide();
+      });
+
+      _tmpl.find(".facet-field-cnt.custom .facet-field-switch a").on("click", function(){
+        _tmpl.find(".facet-field-cnt.custom").hide();
+        _tmpl.find(".facet-field-cnt.picker").show();
+      });
+
+      _tmpl.find(".start-date-custom").on("change", function () {
+        _options.min(_tmpl.find(".start-date-custom").val());
+        _options.start(_options.min());
+      });
+
+      _tmpl.find(".end-date-custom").on("change", function () {
+        _options.max(_tmpl.find(".end-date-custom").val());
+        _options.end(_options.max());
+      });
+
+      _tmpl.find(".interval-custom").on("change", function () {
+        _options.gap(_tmpl.find(".interval-custom").val());
+      });
 
       function matchIntervals(){
         if (_tmpl.find(".interval-select option[value='"+_options.gap()+"']").length > 0){
@@ -1526,8 +1605,6 @@ $(document).ready(function () {
           _tmpl.find(".interval").show();
         }
       }
-
-      _tmpl.find(".interval").val(_options.gap());
 
       _tmpl.find(".interval-select").on("change", function () {
         if (_tmpl.find(".interval-select").val() == ""){
@@ -1543,6 +1620,7 @@ $(document).ready(function () {
       _tmpl.find(".interval").on("change", function () {
         if (_tmpl.find(".interval-select").val() == ""){
           _options.gap(_tmpl.find(".interval").val());
+          _tmpl.find(".interval-custom").val(_options.gap());
         }
       });
 
@@ -1586,6 +1664,9 @@ $(document).ready(function () {
         _options.max(_calculatedEndDate.format("YYYY-MM-DD[T]HH:mm:ss[Z]"));
         _options.end(_options.max());
 
+        _tmpl.find(".start-date-custom").val(_options.min());
+        _tmpl.find(".end-date-custom").val(_options.max());
+
         var _opts = [];
         // hide not useful options from interval
         if (_calculatedEndDate.diff(_calculatedStartDate, 'minutes') > 1 && _calculatedEndDate.diff(_calculatedStartDate, 'minutes') <= 60){
@@ -1623,60 +1704,6 @@ $(document).ready(function () {
     }
   }
 
-
-  ko.bindingHandlers.daterangepicker = {
-    init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
-      var _el = $(element);
-      var _options = $.extend(valueAccessor(), {});
-      _el.val(_options.min() + ' ${_('to')} ' + _options.max() + ', ' + _options.gap());
-      _el.daterangepicker({
-            startDate: _options.min() ? moment(_options.min()).utc() : moment().subtract('days', 29),
-            endDate: _options.max() ? moment(_options.max()).utc() : moment(),
-            interval: _options.gap() ? _options.gap() : '+30MINUTES',
-            showDropdowns: true,
-            showWeekNumbers: true,
-            timePicker: true,
-            timePickerIncrement: 1,
-            timePicker12Hour: false,
-            ranges: {
-              'Today': [moment(), moment()],
-              'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
-              'Last 7 Days': [moment().subtract('days', 6), moment()],
-              'Last 30 Days': [moment().subtract('days', 29), moment()],
-              'This Month': [moment().startOf('month'), moment().endOf('month')],
-              'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
-            },
-            opens: 'right',
-            buttonClasses: ['btn btn-default'],
-            applyClass: 'btn-small btn-primary',
-            cancelClass: 'btn-small',
-            format: 'MM/DD/YYYY HH:mm:ss',
-            separator: ' ${_('to')} ',
-            locale: {
-              applyLabel: '${_('Pick')}',
-              cancelLabel: '${_('Cancel')}',
-              fromLabel: '${_('From')}',
-              toLabel: '${_('To')}',
-              intervalLabel: '${_('Interval')}',
-              customRangeLabel: '${_('Custom')}',
-              daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-              monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-              firstDay: 1
-            }
-          },
-          function (start, end, interval, label) {
-            _options.min(start.utc().format("YYYY-MM-DD[T]HH:mm:ss[Z]"));
-            _options.start(start.utc().format("YYYY-MM-DD[T]HH:mm:ss[Z]"));
-            _options.max(end.utc().format("YYYY-MM-DD[T]HH:mm:ss[Z]"));
-            _options.end(end.utc().format("YYYY-MM-DD[T]HH:mm:ss[Z]"));
-            _options.gap(interval);
-            _el.val(_options.min() + ' ${_('to')} ' + _options.max() + ', ' + _options.gap());
-          });
-    },
-    update: function (element, valueAccessor, allBindingsAccessor) {
-      var _options = $.extend(valueAccessor(), {});
-    }
-  }
 
   ko.bindingHandlers.augmenthtml = {
     render: function (element, valueAccessor, allBindingsAccessor, viewModel) {
